@@ -12,9 +12,9 @@
 #include "TimerOne.h"
 
 DisplaySSD1306_128x32_I2C display(-1);
-Encoder enc1(CLK, DT, SW, TYPE1);
+Encoder enc1(CLK, DT, SW, TYPE2);
 
-uint16_t currentSecond = 0;
+unsigned int currentSecond = 0;
 char charBuf[CHAR_BUFF_SIZE];
 bool isRunning = false;
 
@@ -29,9 +29,10 @@ void setup() {
   display.setFixedFont(comic_sans_font24x32_123);
   printNumber(currentSecond);
 
-  enc1.setFastTimeout(40);
-  
-  Timer1.initialize(1000);  
+  //enc1.setFastTimeout(40);
+
+  // we use Timer in order to catch button click ("cancel") white delay
+  Timer1.initialize(1000); // 1ms
   Timer1.attachInterrupt(timerIsr);
 }
 
@@ -73,19 +74,20 @@ static void processTimerSetting() {
   if (enc1.isTurn()) {
 
     // increase/decrease value
-    if (enc1.isFastR()) currentSecond = currentSecond + 1; 
+    if (enc1.isFastR()) currentSecond = currentSecond + 60; 
     else if (enc1.isRight()) currentSecond = currentSecond + 1;
-    else if (enc1.isFastL()) currentSecond = currentSecond - 10;
+    else if (enc1.isFastL()) currentSecond = currentSecond - 60;
     else if (enc1.isLeft()) currentSecond = currentSecond - 1;
 
+
+    if (currentSecond == MAX_TIME_SEC) {
+      currentSecond = 0;
+    }
+    
     if (currentSecond > MAX_TIME_SEC) {
       currentSecond = MAX_TIME_SEC;
     }
 
-    if (currentSecond < 0) {
-      currentSecond = 0;
-    }
-    
     printNumber(currentSecond);
   }
 
@@ -95,7 +97,7 @@ static void processTimerSetting() {
   }
 }
 
-static char* formatSeconds(uint16_t seconds) {
+static char* formatSeconds(unsigned int seconds) {
   // clear buffer. Because strings of characters are terminated by a zero byte,
   // only the first byte needs to be zeroed
   charBuf[0] = (char)0;
@@ -113,7 +115,7 @@ static char* formatSeconds(uint16_t seconds) {
   return charBuf;
 }
 
-static void printNumber(uint8_t number) {
+static void printNumber(unsigned int number) {
   display.clear();
   display.printFixed(0,  0, formatSeconds(number), STYLE_NORMAL);
 }
