@@ -10,7 +10,7 @@
 DisplaySSD1306_128x32_I2C display(-1);
 Encoder enc1(CLK, DT, SW, TYPE2);
 
-int lastSelectedValueSeconds = 0;
+uint16_t lastSelectedValueSeconds = 0;
 char charBuf[CHAR_BUFF_SIZE];
 bool isRunning = false;
 
@@ -74,13 +74,25 @@ static void processTimerSetting() {
   } 
 }
 
+static char* formatSeconds(uint16_t seconds) {
+  // clear buffer. Because strings of characters are terminated by a zero byte, 
+  // only the first byte needs to be zeroed
+  charBuf[0] = (char)0;
+  String str;
+    
+  if (seconds < 0) {
+    str = "NaN";
+  } else {
+    int mins = seconds / 60;
+    int secs = seconds % 60;
+    str = (mins < 10 ? "0" : "") + String(mins) + ":" + (secs < 10 ? "0" : "") + String(secs); 
+  }
+
+  str.toCharArray(charBuf, CHAR_BUFF_SIZE);
+  return charBuf;
+}
+
 static void printNumber(uint8_t number) {
     display.clear();
-
-    // clear buffer. Because strings of characters are terminated by a zero byte, 
-    // only the first byte needs to be zeroed
-    charBuf[0] = (char)0;
-    String str = String(number) + ":00";
-    str.toCharArray(charBuf, CHAR_BUFF_SIZE);
-    display.printFixed(0,  0, charBuf, STYLE_NORMAL);
+    display.printFixed(0,  0, formatSeconds(number), STYLE_NORMAL);
 }
