@@ -12,6 +12,7 @@ Encoder enc1(CLK, DT, SW, TYPE2);
 
 int lastSelectedValueSeconds = 0;
 char charBuf[CHAR_BUFF_SIZE];
+bool isRunning = false;
 
 void setup() {
   
@@ -28,6 +29,35 @@ void setup() {
 void loop() {
   enc1.tick();
 
+  if (isRunning) {
+    if (enc1.isClick()) {
+       // stop running timer
+       isRunning = false;
+       printNumber(0);
+    } else {
+      processRunningTimer();   
+    }
+    
+  } else {
+    processTimerSetting();
+  }
+  
+}
+
+// Run timer every second
+static void processRunningTimer() {
+  lastSelectedValueSeconds = lastSelectedValueSeconds - 1;
+  if (lastSelectedValueSeconds == 0) {
+   printNumber(lastSelectedValueSeconds);
+   isRunning = false; 
+  } else {
+   printNumber(lastSelectedValueSeconds);
+   delay(1000); 
+  }
+}
+
+// Set timer using encoder, when it is not running
+static void processTimerSetting() {
   if (enc1.isTurn()) { 
     if (enc1.isRight()) {
       lastSelectedValueSeconds = lastSelectedValueSeconds + 10;
@@ -37,12 +67,14 @@ void loop() {
     }
     printNumber(lastSelectedValueSeconds);
   }
-  
+
+  if (enc1.isClick()) {
+    // Run the timer!
+    isRunning = true;
+  } 
 }
 
 static void printNumber(uint8_t number) {
-    //display.setFixedFont(ssd1306xled_font6x8);
-    // OK - display.setFixedFont(comic_sans_font24x32_123);
     display.clear();
 
     // clear buffer. Because strings of characters are terminated by a zero byte, 
