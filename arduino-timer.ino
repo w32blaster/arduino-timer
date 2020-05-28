@@ -16,6 +16,7 @@ DisplaySSD1306_128x32_I2C display(-1);
 Encoder enc1(CLK, DT, SW, TYPE2);
 
 unsigned int currentSecond = 0;
+unsigned int lastSelectedSecond = 0;
 char charBuf[CHAR_BUFF_SIZE];
 bool isRunning = false;
 
@@ -30,7 +31,7 @@ void setup() {
   display.begin();
   display.clear();
   display.setFixedFont(comic_sans_font24x32_123);
-  printNumber(currentSecond);
+  printNumber(lastSelectedSecond);
 
   // we use Timer in order to catch button click ("cancel") white delay
   Timer1.initialize(1000); // 1ms
@@ -65,9 +66,13 @@ static void processRunningTimer() {
   if (currentSecond == 0) {
     
     // time is run out, stop the timer
-    printNumber(currentSecond);
+    printEndAnimation();
+    delay(1000);
+    printNumber(lastSelectedSecond);
+    currentSecond = lastSelectedSecond;
     isRunning = false;
     turnGreen();
+    
   } else {
 
     // continue ticking
@@ -95,8 +100,10 @@ static void processTimerSetting() {
   }
 
   if (enc1.isClick()) {
+    
     // Run the timer!
     isRunning = true;
+    lastSelectedSecond = currentSecond;
     turnRed();
   }
   
@@ -123,6 +130,20 @@ static char* formatSeconds(unsigned int seconds) {
 static void printNumber(unsigned int number) {
   display.clear();
   display.printFixed(0,  0, formatSeconds(number), STYLE_NORMAL);
+}
+
+static void printEndAnimation() {
+
+  display.clear();
+  display.setFixedFont(ssd1306xled_font8x16);
+  display.printFixed(20, 8, "TIME ENDED!", STYLE_NORMAL);
+
+  lcd_delay(1000);
+  display.getInterface().invertMode();
+  lcd_delay(2000);
+  display.getInterface().normalMode();
+  
+  display.setFixedFont(comic_sans_font24x32_123);
 }
 
 // we use LED with common anode, that means LOW is when light turned on and HIGH is off
