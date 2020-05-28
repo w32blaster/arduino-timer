@@ -77,6 +77,26 @@ static void processRunningTimer() {
 
     // continue ticking
     printNumber(currentSecond);
+
+    // if there are few seconds left, blink with LED
+    switch (currentSecond) {
+      case 5:
+        turnOff();
+        break;
+      case 4:
+        turnRed();
+        break;
+      case 3:
+        turnOff();
+        break;
+      case 2:
+        turnRed();
+        break;
+      case 1:
+        turnOff();
+        break;
+    }
+    
     delay(1000);
   }
 }
@@ -154,4 +174,8 @@ static void turnGreen() {
 static void turnRed() {
   digitalWrite(LED_GREEN_PIN, HIGH);
   digitalWrite(LED_RED_PIN, LOW);
+}
+static void turnOff() {
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(LED_RED_PIN, HIGH);
 }
